@@ -11,7 +11,7 @@ let pchar chr =
         if String.IsNullOrEmpty(str) then
             Failure "no more input"
         else if str[0] = chr then
-            Success ($"found {chr}", str[1..])
+            Success (chr, str[1..])
         else
             Failure $"expecting {chr} found {str[0]}"
     Parser innerFn
@@ -52,6 +52,57 @@ let anyOf chrs =
     chrs
     |> List.map pchar
     |> choice
+
+
+let mapP f parser =
+    let innerFn input =
+        let result = run parser input
+        match result with
+        | Success (v, remaining) -> Success (f v, remaining)
+        | Failure err -> Failure err
+    Parser innerFn
+
+
+let ( <!> ) = mapP
+let ( |>> ) x f = mapP f x
+
+let returnP x =
+    let innerFn str =
+        Success (x, str)
+    Parser innerFn
+
+let applyP fP xP =
+    (fP .>>. xP) |>> fun (f, x) -> f x
+    
+let ( <*> ) = applyP
+
+
+
+
+
+
+
+
+
+
+
+let parseDigit = anyOf ['0'..'9']
+let tupleToStr ((c1, c2), c3) = System.String [| c1; c2; c3 |] 
+let parseThreeDigitsAsStr = (parseDigit .>>. parseDigit .>>. parseDigit) |>> tupleToStr
+
+let parseThreeDigitsAsInt =
+  mapP int parseThreeDigitsAsStr
+
+let a = run parseThreeDigitsAsInt "123abc"
+
+    
+printf $"{a}"
+
+
+
+
+
+
 
 
 
