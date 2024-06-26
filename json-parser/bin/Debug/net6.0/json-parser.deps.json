@@ -8,17 +8,17 @@
     ".NETCoreApp,Version=v6.0": {
       "json-parser/1.0.0": {
         "dependencies": {
-          "FSharp.Core": "6.0.5"
+          "FSharp.Core": "8.0.300"
         },
         "runtime": {
           "json-parser.dll": {}
         }
       },
-      "FSharp.Core/6.0.5": {
+      "FSharp.Core/8.0.300": {
         "runtime": {
           "lib/netstandard2.1/FSharp.Core.dll": {
-            "assemblyVersion": "6.0.0.0",
-            "fileVersion": "6.0.522.27404"
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.3.24.21101"
           }
         },
         "resources": {
@@ -71,12 +71,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "FSharp.Core/6.0.5": {
+    "FSharp.Core/8.0.300": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-FwdQVtpj34xt8vKyFUUeNIS+obWlEnSrSW7y1ivRVts/ZsrUsKyOd0bZehgFhWdnB/NBsa9DCWvNFMTO0XDFcg==",
-      "path": "fsharp.core/6.0.5",
-      "hashPath": "fsharp.core.6.0.5.nupkg.sha512"
+      "sha512": "sha512-Jv44fV7TNglyMku89lQcA4Q6mFKLyHb2bs1Yb72nvSVc+cHplEnoZ4XQUaaTLJGUTx/iMqcrkYGtaLzkkIhpaA==",
+      "path": "fsharp.core/8.0.300",
+      "hashPath": "fsharp.core.8.0.300.nupkg.sha512"
     }
   }
 }

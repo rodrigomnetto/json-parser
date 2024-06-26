@@ -20,7 +20,9 @@ C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\bin\Debug\net6.0
 C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-parser.fsproj.AssemblyReference.cache
 C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-parser.AssemblyInfoInputs.cache
 C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-parser.AssemblyInfo.fs
-C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-parser.fsproj.CopyComplete
 C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-parser.dll
 C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-parser.pdb
 C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-parser.genruntimeconfig.cache
+C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-parser.fsproj.CoreCompileInputs.cache
+C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-parser.sourcelink.json
+C:\Users\rodri\source\repos\json-parser\json-parser\json-parser\obj\Debug\net6.0\json-par.D10DEE33.Up2Date

@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "BEmD9wrAfujzNfzCVAIhVt93R43wYzefEqK8+3rRV5DJkAHVGrHoZqFI0goCAmsy+nIp4nb9XpCSezmD5NkXlQ==",
+  "dgSpecHash": "m3ciVCYXDqg=",
   "success": true,
   "projectFilePath": "C:\\Users\\rodri\\source\\repos\\json-parser\\json-parser\\json-parser\\json-parser.fsproj",
   "expectedPackageFiles": [
-    "C:\\Users\\rodri\\.nuget\\packages\\fsharp.core\\6.0.5\\fsharp.core.6.0.5.nupkg.sha512"
+    "C:\\Users\\rodri\\.nuget\\packages\\fsharp.core\\8.0.300\\fsharp.core.8.0.300.nupkg.sha512"
   ],
   "logs": []
 }

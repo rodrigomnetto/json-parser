@@ -76,6 +76,40 @@ let applyP fP xP =
     
 let ( <*> ) = applyP
 
+let lift2 f p1 p2 = returnP f <*> p1 <*> p2
+
+let rec sequence parsers =
+    let cons head tail = head::tail
+    let consP = lift2 cons
+    match parsers with
+        | [] -> returnP []
+        | head::tail -> consP head (sequence tail)
+
+let charListToStr chrList = chrList |> List.toArray |> System.String 
+
+let pstring str =
+    str 
+    |> List.ofSeq
+    |> List.map pchar
+    |> sequence
+    |> mapP charListToStr
+
+let rec matchN parser =
+    let innerFn str =
+        let result = run (parser .>>. (matchN parser)) str
+        match result with
+        | Failure _ -> Success ([], str)
+        | Success ((v1, v2), r) -> Success (v1::v2, r)
+    Parser innerFn
+
+let many parser = matchN parser
+let many1 parser = (parser .>>. matchN parser)
+        
+    
+
+let digit = anyOf ['0'..'9']
+let result = run (many digit) "23";
+printfn $"{result}"
 
 
 
@@ -83,8 +117,15 @@ let ( <*> ) = applyP
 
 
 
+//test
 
+(*
+let concat (chr1 : char) (chr2 : char)  = $"{chr1}{chr2}"
 
+let lift2 = (returnP concat) <*> pchar 'A' <*> pchar 'B'
+let result = run lift2 "Abcd" 
+
+printfn $"{result}"
 
 let parseDigit = anyOf ['0'..'9']
 let tupleToStr ((c1, c2), c3) = System.String [| c1; c2; c3 |] 
@@ -94,22 +135,12 @@ let parseThreeDigitsAsInt =
   mapP int parseThreeDigitsAsStr
 
 let a = run parseThreeDigitsAsInt "123abc"
-
     
 printf $"{a}"
-
-
-
-
-
-
-
-
-
-
 
 let parseA = pchar 'A'
 let parseB = pchar 'B'
 let parseC = pchar 'C'
 let result = run (parseC .>>. (parseA <|> parseB)) "CABbc" 
 printfn $"{result}"
+*)

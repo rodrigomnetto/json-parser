@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\rodri\\source\\repos\\json-parser\\json-parser\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{D9F0264D-5FDF-401C-A5F3-9F8DE7EFEA68}|json-parser\\json-parser.fsproj|c:\\users\\rodri\\source\\repos\\json-parser\\json-parser\\json-parser\\program.fs||{8A5AA6CF-46E3-4520-A70A-7393D15233E9}",
+      "RelativeMoniker": "D:0:0:{D9F0264D-5FDF-401C-A5F3-9F8DE7EFEA68}|json-parser\\json-parser.fsproj|solutionrelative:json-parser\\program.fs||{8A5AA6CF-46E3-4520-A70A-7393D15233E9}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.fs",
+              "DocumentMoniker": "C:\\Users\\rodri\\source\\repos\\json-parser\\json-parser\\json-parser\\Program.fs",
+              "RelativeDocumentMoniker": "json-parser\\Program.fs",
+              "ToolTip": "C:\\Users\\rodri\\source\\repos\\json-parser\\json-parser\\json-parser\\Program.fs",
+              "RelativeToolTip": "json-parser\\Program.fs",
+              "ViewState": "AQIAAF0AAAAAAAAAAAAAAG4AAAAhAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2024-05-17T04:33:42.886Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
