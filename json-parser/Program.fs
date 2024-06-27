@@ -103,18 +103,31 @@ let rec matchN parser =
     Parser innerFn
 
 let many parser = matchN parser
-let many1 parser = (parser .>>. matchN parser)
-        
-    
+let many1 parser = 
+    let innerFn str =
+        match run (parser .>>. matchN parser) str with
+            | Failure err -> Failure err
+            | Success ((v1, v2), r) -> Success (v1::v2, r)
+    Parser innerFn
 
-let digit = anyOf ['0'..'9']
-let result = run (many digit) "23";
-printfn $"{result}"
+//optional parser
+let opt p =
+  let some = p |>> Some
+  let none = returnP None
+  some <|> none
 
+//int parser
+let pint =
+    let strToInt (signal, str) =
+        let value = str |> List.toArray |> System.String |> int
+        match signal with
+        | Some _ -> -value
+        | _ -> value
 
+    let digitsP = anyOf ['0'..'9']
+    let manyDigitsP = many1 digitsP
 
-
-
+    ((opt (pchar '-')) .>>. manyDigitsP) |>> fun r -> strToInt r
 
 
 //test
