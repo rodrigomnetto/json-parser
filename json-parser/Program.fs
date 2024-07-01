@@ -130,6 +130,36 @@ let pint =
     ((opt (pchar '-')) .>>. manyDigitsP) |>> fun r -> strToInt r
 
 
+let (>>.) p1 p2 =
+    (p1 .>>. p2)
+    |> mapP (fun (a, _) -> a) 
+
+let (.>>) p1 p2 =
+    (p1 .>>. p2)
+    |> mapP (fun (_, b) -> b) 
+
+let between p1 p2 p3 =
+  p1 >>. p2 .>> p3
+
+
+let sepBy p sp =
+    many (p >>. opt sp)
+
+let sepBy1 p sp =
+    many1 (p >>. opt sp)
+
+//implementar bind
+
+let comma = pchar ','
+let digit = anyOf ['0'..'9']
+
+let oneOrMoreDigitList = sepBy1 pint comma
+
+let result = run oneOrMoreDigitList "145,234,322;"      // Success (['1'], ";")
+printfn $"{result}"
+
+//"1,2,3;"
+
 //test
 
 (*
