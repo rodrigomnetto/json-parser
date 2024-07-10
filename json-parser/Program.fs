@@ -6,6 +6,27 @@ type ParseResult<'a> =
 
 type Parser<'a> = Parser of (string -> ParseResult<'a * string>) 
 
+let run p str =
+    let (Parser fn) = p
+    fn str
+
+let bindP f p =
+    let innerFn str =
+        match run p str with
+        | Failure e -> Failure e
+        | Success (r,s) ->
+            match run (f r) s with
+            | Failure e -> Failure e
+            | Success (r1, s1) -> Success (r1, s1)
+    Parser innerFn
+
+let ( >>= ) p f = bindP f p
+
+let returnP x =
+    let innerFn str =
+        Success (x, str)
+    Parser innerFn
+
 let pchar chr =
     let innerFn str = 
         if String.IsNullOrEmpty(str) then
@@ -16,30 +37,19 @@ let pchar chr =
             Failure $"expecting {chr} found {str[0]}"
     Parser innerFn
 
-let run parser str =
-    let (Parser fn) = parser
-    fn str
-
-let andThen parser1 parser2 =
-    let innerFn str =
-        let r1 = run parser1 str
-        match r1 with
-            | Failure msg -> Failure msg
-            | Success (c1, chrs) -> 
-                let r2 = run parser2 chrs
-                match r2 with
-                | Failure msg -> Failure msg
-                | Success (c2, chrs) -> Success ((c1, c2), chrs)
-    Parser innerFn
+let andThen p1 p2 =
+    p1 >>= (fun r1 -> 
+    p2 >>= (fun r2 ->
+        returnP (r1, r2)))
 
 let ( .>>. ) = andThen
 
-let orElse parser1 parser2 =
+let orElse p1 p2 =
     let innerFn str =
-        let r1 = run parser1 str
+        let r1 = run p1 str
         match r1 with
         | Success (c, chrs) -> Success (c, chrs)
-        | Failure _ -> run parser2 str 
+        | Failure _ -> run p2 str 
     Parser innerFn
 
 let ( <|> ) = orElse
@@ -47,41 +57,29 @@ let ( <|> ) = orElse
 let choice parsers =
     List.reduce (<|>) parsers
 
-
 let anyOf chrs =
     chrs
     |> List.map pchar
     |> choice
 
-
-let mapP f parser =
-    let innerFn input =
-        let result = run parser input
-        match result with
-        | Success (v, remaining) -> Success (f v, remaining)
-        | Failure err -> Failure err
-    Parser innerFn
-
+let mapP f p = bindP (f >> returnP) p
 
 let ( <!> ) = mapP
 let ( |>> ) x f = mapP f x
 
-let returnP x =
-    let innerFn str =
-        Success (x, str)
-    Parser innerFn
-
-let applyP fP xP =
-    (fP .>>. xP) |>> fun (f, x) -> f x
+let applyP fp xp = 
+    fp >>= (fun f ->
+    xp >>= fun r ->
+    returnP (f r))
     
 let ( <*> ) = applyP
 
 let lift2 f p1 p2 = returnP f <*> p1 <*> p2
 
-let rec sequence parsers =
+let rec sequence p =
     let cons head tail = head::tail
     let consP = lift2 cons
-    match parsers with
+    match p with
         | [] -> returnP []
         | head::tail -> consP head (sequence tail)
 
@@ -94,21 +92,20 @@ let pstring str =
     |> sequence
     |> mapP charListToStr
 
-let rec matchN parser =
+let rec matchN p =
     let innerFn str =
-        let result = run (parser .>>. (matchN parser)) str
+        let result = run (p .>>. (matchN p)) str
         match result with
         | Failure _ -> Success ([], str)
         | Success ((v1, v2), r) -> Success (v1::v2, r)
     Parser innerFn
 
-let many parser = matchN parser
-let many1 parser = 
-    let innerFn str =
-        match run (parser .>>. matchN parser) str with
-            | Failure err -> Failure err
-            | Success ((v1, v2), r) -> Success (v1::v2, r)
-    Parser innerFn
+let many p = matchN p
+
+let many1 p =
+    p >>= (fun r1 -> 
+    (many p) >>= (fun r2 ->
+    returnP (r1::r2)))
 
 //optional parser
 let opt p =
@@ -129,7 +126,6 @@ let pint =
 
     ((opt (pchar '-')) .>>. manyDigitsP) |>> fun r -> strToInt r
 
-
 let (>>.) p1 p2 =
     (p1 .>>. p2)
     |> mapP (fun (a, _) -> a) 
@@ -141,49 +137,8 @@ let (.>>) p1 p2 =
 let between p1 p2 p3 =
   p1 >>. p2 .>> p3
 
-
 let sepBy p sp =
     many (p >>. opt sp)
 
 let sepBy1 p sp =
     many1 (p >>. opt sp)
-
-//implementar bind
-
-let comma = pchar ','
-let digit = anyOf ['0'..'9']
-
-let oneOrMoreDigitList = sepBy1 pint comma
-
-let result = run oneOrMoreDigitList "145,234,322;"      // Success (['1'], ";")
-printfn $"{result}"
-
-//"1,2,3;"
-
-//test
-
-(*
-let concat (chr1 : char) (chr2 : char)  = $"{chr1}{chr2}"
-
-let lift2 = (returnP concat) <*> pchar 'A' <*> pchar 'B'
-let result = run lift2 "Abcd" 
-
-printfn $"{result}"
-
-let parseDigit = anyOf ['0'..'9']
-let tupleToStr ((c1, c2), c3) = System.String [| c1; c2; c3 |] 
-let parseThreeDigitsAsStr = (parseDigit .>>. parseDigit .>>. parseDigit) |>> tupleToStr
-
-let parseThreeDigitsAsInt =
-  mapP int parseThreeDigitsAsStr
-
-let a = run parseThreeDigitsAsInt "123abc"
-    
-printf $"{a}"
-
-let parseA = pchar 'A'
-let parseB = pchar 'B'
-let parseC = pchar 'C'
-let result = run (parseC .>>. (parseA <|> parseB)) "CABbc" 
-printfn $"{result}"
-*)
