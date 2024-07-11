@@ -10,7 +10,7 @@ open System.Reflection
 [<assembly: System.Reflection.AssemblyCompanyAttribute("json-parser")>]
 [<assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")>]
 [<assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")>]
-[<assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+772148e86bda2da8886e9e72c403d17625215832")>]
+[<assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+90a5852173b3b467cc691486cb3c7b99a87ba9c5")>]
 [<assembly: System.Reflection.AssemblyProductAttribute("json-parser")>]
 [<assembly: System.Reflection.AssemblyTitleAttribute("json-parser")>]
 [<assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")>]
