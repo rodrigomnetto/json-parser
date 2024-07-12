@@ -3,16 +3,15 @@
 type ParserLabel = string
 type ParserError = string
 
-type ParseResult<'a> =
-    | Success of 'a
-    | Failure of ParserLabel * ParserError
-
-
 type ParsingState = {
     lines: string[]
     line: int
     column: int
 }
+
+type ParseResult<'a> =
+    | Success of 'a
+    | Failure of ParserLabel * ParserError * ParsingState
 
 let incLine state = { state with line = state.line + 1; column = 0 }
 let incColumn state = { state with column = state.column + 1 }
@@ -54,14 +53,15 @@ type Parser<'a> = {
     label: ParserLabel
 }
 
-let run p str = p.parseFn str
+let run p str = 
+    p.parseFn str
 
 let setLabel p newLabel =
     let innerFn str =
         match run p str with
         | Success r -> Success r
-        | Failure (_, message) ->
-        Failure (newLabel, message)
+        | Failure (_, message, state) ->
+        Failure (newLabel, message, state)
     { parseFn=innerFn; label=newLabel }
 
 let (<?>) p newLabel = setLabel p newLabel
@@ -69,15 +69,17 @@ let (<?>) p newLabel = setLabel p newLabel
 let printResult r = 
     match r with
     | Success (v, _) -> printfn "%A" v
-    | Failure (label, message) -> printfn $"Error parsing {label}, {message}"
+    | Failure (label, message, state) -> 
+        let { lines=lines; line=line; column =column } = state
+        printfn "Error parsing %s at line %d column %d\n%s\n%*s^%s" label (line + 1) (column + 1) (lines.[line]) column "" message
 
 let bindP f p =
     let innerFn str =
         match run p str with
-        | Failure (l, e) -> Failure (l, e)
+        | Failure (l, e, s) -> Failure (l, e, s)
         | Success (r,s) ->
             match run (f r) s with
-            | Failure (l, e) -> Failure (l, e)
+            | Failure (l, e, s) -> Failure (l, e, s)
             | Success (r1, s1) -> Success (r1, s1)
     { parseFn=innerFn; label="unknown" }
 
@@ -92,12 +94,12 @@ let returnP x =
 let satisfy predicate label =
     let innerFn input =
         match nextChar input with
-        | (None, _) -> Failure (label, "no more input")
+        | (None, s) -> Failure (label, "no more input", s)
         | (Some c, s) -> 
             if predicate c then
                 Success (c, s)
             else 
-                Failure (label, $"Unexpected '{c}' at Line: {s.line + 1} Column: {s.column + 1}")
+                Failure (label, $"Unexpected '{c}'", s)
     { parseFn=innerFn; label=label }
 
 let pchar chr =
@@ -221,11 +223,11 @@ let sepBy1 p sp =
 
     
 let input = initialize @"4521
-  5485
+  a485
 5677"
 
 //let parser =many (anyOf ['0'..'9'] >>. (many (pchar ' ')))
 
-let parser =many ((anyOf ['0'..'9']) <|> (pchar '\n') <|> (pchar ' '))
+let parser = (many (anyOf ['0'..'9'])) .>>. pchar '\n' .>>. (many (pchar ' ')) .>>. pchar 'a' .>>. pchar '4' .>>. pchar 'b'
 
 printResult (run parser input)
