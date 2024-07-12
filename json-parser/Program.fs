@@ -7,8 +7,50 @@ type ParseResult<'a> =
     | Success of 'a
     | Failure of ParserLabel * ParserError
 
+
+type ParsingState = {
+    lines: string[]
+    line: int
+    column: int
+}
+
+let incLine state = { state with line = state.line + 1; column = 0 }
+let incColumn state = { state with column = state.column + 1 }
+
+let initialize str = 
+    if String.IsNullOrEmpty(str) then
+        { lines=[||]; line= -1; column= -1 }
+    else
+        let separators = [| "\r\n"; "\n" |]
+        let lines = str.Split(separators, StringSplitOptions.None)
+        { lines=lines; line= -1; column= -1 }
+
+let nextChar state = 
+    let { lines=lines; line=line; column =column } = state
+
+    if line > -1 && column > -1 then
+        let newState = incColumn state
+
+        if newState.column < lines[line].Length then
+            (Some lines.[newState.line].[newState.column], newState)
+        elif newState.column = lines[line].Length then
+            (Some '\n', newState)
+        else
+            let newState = incLine state
+            if newState.line < state.lines.Length then
+                (Some lines.[newState.line].[newState.column], newState)
+            else
+                (None, state)
+    else
+        if state.lines.Length = 0 then 
+            (None, state)
+        else
+            let newState = incLine state
+            (Some lines.[newState.line].[newState.column], newState)
+
+
 type Parser<'a> = {
-    parseFn: string -> ParseResult<'a * string>
+    parseFn: ParsingState -> ParseResult<'a * ParsingState>
     label: ParserLabel
 }
 
@@ -49,11 +91,13 @@ let returnP x =
 
 let satisfy predicate label =
     let innerFn input =
-        if String.IsNullOrEmpty(input) then
-            Failure (label, "no more input")
-        else if predicate input[0] then
-            Success (input[0], input[1..])
-        else Failure (label, $"Unexpected {input[0]}")
+        match nextChar input with
+        | (None, _) -> Failure (label, "no more input")
+        | (Some c, s) -> 
+            if predicate c then
+                Success (c, s)
+            else 
+                Failure (label, $"Unexpected '{c}' at Line: {s.line + 1} Column: {s.column + 1}")
     { parseFn=innerFn; label=label }
 
 let pchar chr =
@@ -82,7 +126,6 @@ let ( <|> ) = orElse
 let choice parsers =
     List.reduce (<|>) parsers
 
-//colador
 let anyOf chrs =
     let label = $"any of {chrs}"
     chrs
@@ -173,3 +216,16 @@ let sepBy p sp =
 
 let sepBy1 p sp =
     many1 (p >>. opt sp)
+
+
+
+    
+let input = initialize @"4521
+  5485
+5677"
+
+//let parser =many (anyOf ['0'..'9'] >>. (many (pchar ' ')))
+
+let parser =many ((anyOf ['0'..'9']) <|> (pchar '\n') <|> (pchar ' '))
+
+printResult (run parser input)
