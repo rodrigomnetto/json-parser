@@ -53,12 +53,16 @@ type Parser<'a> = {
     label: ParserLabel
 }
 
+let runOnParsingState p state = 
+    p.parseFn state
+
 let run p str = 
-    p.parseFn str
+    let state = initialize str
+    runOnParsingState p state
 
 let setLabel p newLabel =
-    let innerFn str =
-        match run p str with
+    let innerFn state =
+        match runOnParsingState p state with
         | Success r -> Success r
         | Failure (_, message, state) ->
         Failure (newLabel, message, state)
@@ -74,11 +78,11 @@ let printResult r =
         printfn "Error parsing %s at line %d column %d\n%s\n%*s^%s" label (line + 1) (column + 1) (lines.[line]) column "" message
 
 let bindP f p =
-    let innerFn str =
-        match run p str with
+    let innerFn state =
+        match runOnParsingState p state with
         | Failure (l, e, s) -> Failure (l, e, s)
         | Success (r,s) ->
-            match run (f r) s with
+            match runOnParsingState (f r) s with
             | Failure (l, e, s) -> Failure (l, e, s)
             | Success (r1, s1) -> Success (r1, s1)
     { parseFn=innerFn; label="unknown" }
@@ -87,13 +91,13 @@ let ( >>= ) p f = bindP f p
 
 let returnP x =
     let label = sprintf "%A" x
-    let innerFn str =
-        Success (x, str)
+    let innerFn state =
+        Success (x, state)
     {parseFn=innerFn; label=label}
 
 let satisfy predicate label =
-    let innerFn input =
-        match nextChar input with
+    let innerFn state =
+        match nextChar state with
         | (None, s) -> Failure (label, "no more input", s)
         | (Some c, s) -> 
             if predicate c then
@@ -116,11 +120,11 @@ let ( .>>. ) = andThen
 
 let orElse p1 p2 =
     let label = sprintf "%s orElse %s" p1.label p2.label
-    let innerFn str =
-        let r1 = run p1 str
+    let innerFn state =
+        let r1 = runOnParsingState p1 state
         match r1 with
         | Success (c, chrs) -> Success (c, chrs)
-        | Failure _ -> run p2 str 
+        | Failure _ -> runOnParsingState p2 state 
     { parseFn=innerFn; label=label }
 
 let ( <|> ) = orElse
@@ -167,10 +171,10 @@ let pstring str =
 
 let rec matchN p =
     let label = $"many {p.label}"
-    let innerFn str =
-        let result = run (p .>>. (matchN p)) str
+    let innerFn state =
+        let result = runOnParsingState (p .>>. (matchN p)) state
         match result with
-        | Failure _ -> Success ([], str)
+        | Failure _ -> Success ([], state)
         | Success ((v1, v2), r) -> Success (v1::v2, r)
     { parseFn=innerFn; label=label }
 
@@ -189,6 +193,10 @@ let opt p =
   let none = returnP None
   some <|> none
 
+let digitChar = 
+    let predicate = Char.IsDigit
+    satisfy predicate "digit"
+
 //int parser
 let pint =
     let strToInt (signal, str) =
@@ -197,10 +205,18 @@ let pint =
         | Some _ -> -value
         | _ -> value
 
-    let digitsP = satisfy Char.IsDigit $"anyOf {['0'..'9']}"
-    let manyDigitsP = many1 digitsP
+    let manyDigits = many1 digitChar
+    (((opt (pchar '-')) .>>. manyDigits) |>> fun r -> strToInt r) <?> "integer"
 
-    ((opt (pchar '-')) .>>. manyDigitsP) |>> fun r -> strToInt r
+let pfloat =
+   let chrsToFloat (((signal, integer), point), dec) =
+        let value = (List.append integer (point :: dec)) |> List.toArray |> System.String |> float
+        match signal with
+        | Some _ -> -value
+        | _ -> value
+
+   let manyDigits = many1 digitChar
+   ((opt (pchar '-') .>>. manyDigits .>>. (pchar '.') .>>. manyDigits) |>> chrsToFloat) <?> "float"
 
 let (>>.) p1 p2 =
     (p1 .>>. p2)
@@ -219,15 +235,18 @@ let sepBy p sp =
 let sepBy1 p sp =
     many1 (p >>. opt sp)
 
+let manyChars cp =
+  many cp
+  |>> charListToStr
 
+let manyChars1 cp =
+  many1 cp
+  |>> charListToStr
 
-    
-let input = initialize @"4521
-  a485
-5677"
+let whiteSpaceChar =
+    let predicate = Char.IsWhiteSpace
+    satisfy predicate "whitespace"
 
-//let parser =many (anyOf ['0'..'9'] >>. (many (pchar ' ')))
+let spaces = many whiteSpaceChar
 
-let parser = (many (anyOf ['0'..'9'])) .>>. pchar '\n' .>>. (many (pchar ' ')) .>>. pchar 'a' .>>. pchar '4' .>>. pchar 'b'
-
-printResult (run parser input)
+let spaces1 = many1 whiteSpaceChar
